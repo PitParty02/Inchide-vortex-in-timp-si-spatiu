@@ -12,8 +12,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: #4CAF50; /* Fundal verde */
-            color: white; /* Text alb pentru contrast */
+            background-color: #a8d5ba; /* verde deschis */
         }
         .container {
             text-align: center;
@@ -22,31 +21,13 @@
         .immunity-code {
             margin-top: 20px;
             font-weight: bold;
-            color: yellow; /* Mesaj cod imunitate */
+            color: green;
         }
         .try-again {
             color: red;
         }
         .hidden {
             display: none;
-        }
-        button {
-            background-color: white;
-            color: #4CAF50;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-            color: white;
-        }
-        input[type="text"] {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            margin-top: 10px;
         }
     </style>
 </head>
@@ -70,15 +51,12 @@
 </div>
 
 <script>
-    const questions = [
-        { hints: ["La vest de o țară cunoscută pentru flamenco", "La nord de o țară faimoasă pentru ghețari", "La est de o țară cunoscută pentru vals"], answer: "Irlanda", code: "IM1" },
-        { hints: ["La sud de o țară cunoscută pentru ghețari și fiorduri", "La vest de o țară renumită pentru temple aurite", "La est de Oceanul Atlantic"], answer: "Islanda", code: "IM2" },
-        { hints: ["La sud de o țară cunoscută pentru dansuri flamenco", "La vest de o țară renumită pentru pizza", "La nord de Marea Mediterană"], answer: "Portugalia", code: "IM3" }
-        { hints: ["La vest de o țară cunoscută pentru flamenco", "La nord de o țară faimoasă pentru ghețari", "La est de o țară cunoscută pentru vals"], answer: "Irlanda" },
-        { hints: ["La sud de o țară cunoscută pentru ghețari și fiorduri", "La vest de o țară renumită pentru temple aurite", "La est de Oceanul Atlantic"], answer: "Islanda" },
-        { hints: ["La sud de o țară cunoscută pentru dansuri flamenco", "La vest de o țară renumită pentru pizza", "La nord de Marea Mediterană"], answer: "Portugalia" },
-        { hints: ["La nord de o țară faimoasă pentru piramide", "La vest de o țară renumită pentru iurte", "La est de Oceanul Atlantic"], answer: "Libia" },
-        { hints: ["La est de o țară cunoscută pentru ghețari", "La sud de o țară renumită pentru vals", "La vest de o țară cunoscută pentru ciocolată"], answer: "Germania" },
+const questions = [
+    { hints: ["La vest de o țară cunoscută pentru flamenco", "La nord de o țară faimoasă pentru ghețari", "La est de o țară cunoscută pentru vals"], answer: "Irlanda" },
+    { hints: ["La sud de o țară cunoscută pentru ghețari și fiorduri", "La vest de o țară renumită pentru temple aurite", "La est de Oceanul Atlantic"], answer: "Islanda" },
+    { hints: ["La sud de o țară cunoscută pentru dansuri flamenco", "La vest de o țară renumită pentru pizza", "La nord de Marea Mediterană"], answer: "Portugalia" },
+    { hints: ["La nord de o țară faimoasă pentru piramide", "La vest de o țară renumită pentru iurte", "La est de Oceanul Atlantic"], answer: "Libia" },
+    { hints: ["La est de o țară cunoscută pentru ghețari", "La sud de o țară renumită pentru vals", "La vest de o țară cunoscută pentru ciocolată"], answer: "Germania" },
     { hints: ["La sud de o țară renumită pentru ghețari", "La est de Oceanul Atlantic", "La nord de o țară renumită pentru temple aurite"], answer: "Bangladesh" },
     { hints: ["La nord de o țară cunoscută pentru ghețari", "La vest de o țară renumită pentru vals", "La sud de o țară renumită pentru tundră"], answer: "Norvegia" },
     { hints: ["La sud de o țară renumită pentru ghețari", "La vest de o țară cunoscută pentru vals", "La est de o țară renumită pentru tundră"], answer: "Ungaria" },
@@ -174,41 +152,41 @@
     { hints: ["La nord de o țară renumită pentru tundre", "La sud de Oceanul Arctic", "La vest de Groenlanda"], answer: "Norvegia" },
     { hints: ["La est de Oceanul Pacific", "La vest de Groenlanda", "La nord de o țară renumită pentru tundre"], answer: "Canada" },
     { hints: ["La sud de o țară cunoscută pentru tundre", "La vest de o țară faimoasă pentru ghețari", "La nord de Oceanul Atlantic"], answer: "Franța" }
-    ];
+];
 
-    let selectedQuestion = null;
-    let immunityPoints = 0;
+let selectedQuestion = null;
+let immunityPoints = 0;
 
-    function initializeQuestion() {
-        selectedQuestion = questions[Math.floor(Math.random() * questions.length)];
-        document.getElementById("hint1").innerText = selectedQuestion.hints[0];
-        document.getElementById("hint2").innerText = selectedQuestion.hints[1];
-        document.getElementById("hint3").innerText = selectedQuestion.hints[2];
-        document.getElementById("hints-section").classList.remove("hidden");
-        document.getElementById("response-message").innerText = '';
-        document.getElementById("answer").value = '';
+function initializeQuestion() {
+    selectedQuestion = questions[Math.floor(Math.random() * questions.length)];
+    document.getElementById("hint1").innerText = selectedQuestion.hints[0];
+    document.getElementById("hint2").innerText = selectedQuestion.hints[1];
+    document.getElementById("hint3").innerText = selectedQuestion.hints[2];
+    document.getElementById("hints-section").classList.remove("hidden");
+    document.getElementById("response-message").innerText = '';
+    document.getElementById("answer").value = '';
+}
+
+function checkAnswer() {
+    const answer = document.getElementById("answer").value.trim();
+    if (answer.toLowerCase() === selectedQuestion.answer.toLowerCase()) {
+        document.getElementById("response-message").innerHTML = `Răspuns corect ✅ Codul punctului de imunitate este: <strong>${selectedQuestion.code}</strong>`;
+    } else {
+        document.getElementById("response-message").innerHTML = "<span class='try-again'>Mai încearcă</span>";
     }
+}
 
-    function checkAnswer() {
-        const answer = document.getElementById("answer").value.trim();
-        if (answer.toLowerCase() === selectedQuestion.answer.toLowerCase()) {
-            document.getElementById("response-message").innerHTML = `Răspuns corect ✅ Codul punctului de imunitate este: <strong>${selectedQuestion.code}</strong>`;
-        } else {
-            document.getElementById("response-message").innerHTML = "<span class='try-again'>Mai încearcă</span>";
-        }
+function addImmunity() {
+    const enteredCode = document.getElementById("immunity-code").value.trim();
+    if (enteredCode === selectedQuestion.code) {
+        immunityPoints++;
+        document.getElementById("immunity-points").innerText = immunityPoints;
+        document.getElementById("immunity-message").innerText = "Punct de imunitate adăugat!";
+        document.getElementById("immunity-code").value = '';
+    } else {
+        document.getElementById("immunity-message").innerText = "Cod invalid. Încearcă din nou.";
     }
-
-    function addImmunity() {
-        const enteredCode = document.getElementById("immunity-code").value.trim();
-        if (enteredCode === selectedQuestion.code) {
-            immunityPoints++;
-            document.getElementById("immunity-points").innerText = immunityPoints;
-            document.getElementById("immunity-message").innerText = "Punct de imunitate adăugat!";
-            document.getElementById("immunity-code").value = '';
-        } else {
-            document.getElementById("immunity-message").innerText = "Cod invalid. Încearcă din nou.";
-        }
-    }
+}
 </script>
 
 </body>
