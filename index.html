@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golurile în timp şi spațiu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #4CAF50; /* Fundal verde */
+            color: white; /* Text alb pentru contrast */
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+        }
+        .immunity-code {
+            margin-top: 20px;
+            font-weight: bold;
+            color: yellow; /* Mesaj cod imunitate */
+        }
+        .try-again {
+            color: red;
+        }
+        .hidden {
+            display: none;
+        }
+        button {
+            background-color: white;
+            color: #4CAF50;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+            color: white;
+        }
+        input[type="text"] {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Golurile în timp şi spațiu</h1>
+    <button id="generate-location" onclick="initializeQuestion()">Generează locația</button>
+    <div id="hints-section" class="hidden">
+        <p>Indiciu 1: <span id="hint1"></span></p>
+        <p>Indiciu 2: <span id="hint2"></span></p>
+        <p>Indiciu 3: <span id="hint3"></span></p>
+        <input type="text" id="answer" placeholder="Introdu răspunsul corect">
+        <button onclick="checkAnswer()">Verifică răspunsul</button>
+        <div id="response-message"></div>
+    </div>
+    <input type="text" id="immunity-code" placeholder="Introdu codul punctului de imunitate">
+    <button onclick="addImmunity()">Adaugă punct de imunitate</button>
+    <div id="immunity-message"></div>
+    <p>Puncte de imunitate: <span id="immunity-points">0</span></p>
+</div>
+
+<script>
+    const questions = [
+        { hints: ["La vest de o țară cunoscută pentru flamenco", "La nord de o țară faimoasă pentru ghețari", "La est de o țară cunoscută pentru vals"], answer: "Irlanda", code: "IM1" },
+        { hints: ["La sud de o țară cunoscută pentru ghețari și fiorduri", "La vest de o țară renumită pentru temple aurite", "La est de Oceanul Atlantic"], answer: "Islanda", code: "IM2" },
+        { hints: ["La sud de o țară cunoscută pentru dansuri flamenco", "La vest de o țară renumită pentru pizza", "La nord de Marea Mediterană"], answer: "Portugalia", code: "IM3" }
+        { hints: ["La vest de o țară cunoscută pentru flamenco", "La nord de o țară faimoasă pentru ghețari", "La est de o țară cunoscută pentru vals"], answer: "Irlanda" },
+        { hints: ["La sud de o țară cunoscută pentru ghețari și fiorduri", "La vest de o țară renumită pentru temple aurite", "La est de Oceanul Atlantic"], answer: "Islanda" },
+        { hints: ["La sud de o țară cunoscută pentru dansuri flamenco", "La vest de o țară renumită pentru pizza", "La nord de Marea Mediterană"], answer: "Portugalia" },
+        { hints: ["La nord de o țară faimoasă pentru piramide", "La vest de o țară renumită pentru iurte", "La est de Oceanul Atlantic"], answer: "Libia" },
+        { hints: ["La est de o țară cunoscută pentru ghețari", "La sud de o țară renumită pentru vals", "La vest de o țară cunoscută pentru ciocolată"], answer: "Germania" },
+    { hints: ["La sud de o țară renumită pentru ghețari", "La est de Oceanul Atlantic", "La nord de o țară renumită pentru temple aurite"], answer: "Bangladesh" },
+    { hints: ["La nord de o țară cunoscută pentru ghețari", "La vest de o țară renumită pentru vals", "La sud de o țară renumită pentru tundră"], answer: "Norvegia" },
+    { hints: ["La sud de o țară renumită pentru ghețari", "La vest de o țară cunoscută pentru vals", "La est de o țară renumită pentru tundră"], answer: "Ungaria" },
+    { hints: ["La vest de o țară renumită pentru ghețari și vulcani", "La sud de Oceanul Atlantic", "La est de Groenlanda"], answer: "Islanda" },
+    { hints: ["La nord de o țară renumită pentru ghețari", "La vest de o țară faimoasă pentru tundră", "La sud de o țară renumită pentru temple aurite"], answer: "Nepal" },
+    { hints: ["La nord de o țară cunoscută pentru ghețari", "La vest de o țară renumită pentru vals", "La est de o țară renumită pentru temple aurite"], answer: "Bangladesh" },
+    { hints: ["La sud de o țară renumită pentru ghețari și fiorduri", "La nord de Marea Mediterană", "La vest de Oceanul Atlantic"], answer: "Spania" },
+    { hints: ["La sud de o țară renumită pentru ghețari și vulcani", "La nord de Oceanul Atlantic", "La est de Groenlanda"], answer: "Groenlanda" },
+    { hints: ["La nord de o țară cunoscută pentru ghețari și vulcani", "La vest de Oceanul Atlantic", "La sud de Oceanul Arctic"], answer: "Norvegia" },
+    { hints: ["La vest de o țară cunoscută pentru vals", "La est de o țară renumită pentru ghețari și tundre", "La nord de Marea Mediterană"], answer: "Germania" },
+    { hints: ["La sud de o țară renumită pentru ghețari și tundre", "La vest de o țară cunoscută pentru vals", "La est de o țară renumită pentru ghețari"], answer: "Austria" },
+    { hints: ["La sud de o țară cunoscută pentru ghețari", "La nord de o țară renumită pentru temple", "La est de Oceanul Atlantic"], answer: "India" },
+    { hints: ["La nord de o țară faimoasă pentru tundre", "La vest de Oceanul Pacific", "La est de Oceanul Arctic"], answer: "Canada" },
+    { hints: ["La nord de Oceanul Atlantic", "La sud de Oceanul Arctic", "La vest de Groenlanda"], answer: "Groenlanda" },
+    { hints: ["La est de o țară cunoscută pentru ghețari", "La sud de o țară renumită pentru vals", "La vest de o țară faimoasă pentru ciocolată"], answer: "Slovacia" },
+    { hints: ["La nord de o țară cunoscută pentru pizza", "La vest de o țară faimoasă pentru ceasuri", "La est de Oceanul Atlantic"], answer: "Franța" },
+    { hints: ["La sud de o țară faimoasă pentru croissante", "La est de Oceanul Atlantic", "La vest de o țară cunoscută pentru ciocolată"], answer: "Spania" },
+    { hints: ["La est de o țară faimoasă pentru vals", "La sud de Oceanul Arctic", "La vest de o țară renumită pentru ciocolată"], answer: "Cehia" },
+    { hints: ["La sud de o țară renumită pentru tundre", "La vest de Oceanul Atlantic", "La est de o țară faimoasă pentru vals"], answer: "Italia" },
+    { hints: ["La vest de o țară faimoasă pentru sarmale", "La nord de o țară renumită pentru papanași", "La est de Marea Adriatică"], answer: "Serbia" },
+    { hints: ["La est de o țară cunoscută pentru flamenco", "La nord de o țară renumită pentru ghețari", "La sud de Oceanul Arctic"], answer: "Germania" },
+    { hints: ["La sud de o țară cunoscută pentru tundre", "La nord de o țară renumită pentru croissante", "La vest de o țară faimoasă pentru pizza"], answer: "Belgia" },
+    { hints: ["La nord de o țară renumită pentru tundre", "La est de Oceanul Atlantic", "La sud de Oceanul Arctic"], answer: "Canada" },
+    { hints: ["La vest de o țară faimoasă pentru ghețari", "La sud de Oceanul Arctic", "La est de Groenlanda"], answer: "Norvegia" },
+    { hints: ["La est de Oceanul Atlantic", "La vest de o țară faimoasă pentru vals", "La nord de o țară cunoscută pentru pizza"], answer: "Elveția" },
+    { hints: ["La nord de o țară renumită pentru tundre", "La sud de Oceanul Arctic", "La est de o țară faimoasă pentru ghețari"], answer: "Suedia" },
+    { hints: ["La sud de o țară faimoasă pentru vals", "La nord de o țară renumită pentru pizza", "La vest de Oceanul Atlantic"], answer: "Ungaria" },
+    { hints: ["La sud de Oceanul Arctic", "La vest de Oceanul Pacific", "La est de Oceanul Atlantic"], answer: "Groenlanda" },
+    { hints: ["La est de o țară faimoasă pentru vals", "La sud de o țară renumită pentru ghețari", "La vest de Oceanul Atlantic"], answer: "Cehia" },
+    { hints: ["La nord de o țară faimoasă pentru tundre", "La vest de Oceanul Atlantic", "La sud de Oceanul Arctic"], answer: "Groenlanda" },
+    { hints: ["La vest de o țară cunoscută pentru tundre", "La est de Oceanul Pacific", "La sud de Oceanul Arctic"], answer: "Rusia" },
+    { hints: ["La sud de o țară cunoscută pentru tundre", "La vest de o țară faimoasă pentru ghețari", "La est de Oceanul Atlantic"], answer: "Austria" },
+    { hints: ["La nord de o țară faimoasă pentru ghețari", "La sud de Oceanul Arctic", "La vest de Oceanul Pacific"], answer: "Canada" },
+    { hints: ["La nord de Oceanul Atlantic", "La sud de Oceanul Arctic", "La vest de Groenlanda"], answer: "Norvegia" },
+    { hints: ["La sud de o țară faimoasă pentru tundre", "La vest de Oceanul Atlantic", "La nord de o țară renumită pentru ghețari"], answer: "Spania" },
+    { hints: ["La sud de o țară cunoscută pentru tundre", "La est de o țară faimoasă pentru ghețari", "La nord de o țară renumită pentru pizza"], answer: "Austria" },
+    { hints: ["La nord de o țară renumită pentru tundre", "La vest de Oceanul Atlantic", "La sud de o țară faimoasă pentru vals"], answer: "Norvegia" },
+    { hints: ["La vest de o țară renumită pentru tundre", "La est de Oceanul Pacific", "La nord de o țară cunoscută pentru ghețari"], answer: "Rusia" },
+    { hints: ["La sud de o țară faimoasă pentru ghețari", "La nord de Marea Mediterană", "La vest de Oceanul Atlantic"], answer: "Portugalia" },
+    { hints: ["La est de o țară renumită pentru vals", "La sud de o țară faimoasă pentru tundre", "La vest de Oceanul Atlantic"], answer: "Cehia" },
+    { hints: ["La nord de o țară cunoscută pentru tundre", "La vest de o țară faimoasă pentru ghețari", "La est de Oceanul Atlantic"], answer: "Suedia" },
+    { hints: ["La sud de o țară renumită pentru ghețari", "La est de Oceanul Atlantic", "La nord de o țară faimoasă pentru tundre"], answer: "India" },
+    { hints: ["La nord de o țară faimoasă pentru tundre", "La est de o țară renumită pentru vals", "La vest de Oceanul Pacific"], answer: "Canada" },
+    { hints: ["La vest de o țară cunoscută pentru tundre", "La est de Oceanul Pacific", "La nord de Oceanul Atlantic"], answer: "Groenlanda" },
+    { hints: ["La sud de o țară faimoasă pentru tundre", "La vest de Oceanul Atlantic", "La nord de o țară renumită pentru ghețari"], answer: "Italia" },
+    { hints: ["La est de o țară renumită pentru vals", "La sud de Oceanul Arctic", "La vest de o țară faimoasă pentru ghețari"], answer: "Polonia" },
+    { hints: ["La sud de Oceanul Arctic", "La vest de Oceanul Pacific", "La est de o țară renumită pentru tundre"], answer: "Groenlanda" },
+    { hints: ["La vest de o țară faimoasă pentru tundre", "La nord de o țară renumită pentru ghețari", "La est de Oceanul Atlantic"], answer: "Norvegia" },
+    { hints: ["La nord de o țară renumită pentru tundre", "La sud de Oceanul Arctic", "La est de Oceanul Atlantic"], answer: "Groenlanda" },
+    { hints: ["La sud de o țară cunoscută pentru tundre", "La vest de o țară faimoasă pentru ghețari", "La est de Oceanul Pacific"], answer: "Mongolia" },
+    { hints: ["La est de Oceanul Atlantic", "La sud de o țară renumită pentru ghețari", "La vest de Oceanul Pacific"], answer: "Japonia" },
+    { hints: ["La nord de o țară faimoasă pentru tundre", "La vest de Oceanul Atlantic", "La est de Oceanul Pacific"], answer: "Canada" },
+    { hints: ["La sud de o țară renumită pentru tundre", "La nord de Marea Mediterană", "La est de Oceanul Atlantic"], answer: "Portugalia" },
+    { hints: ["La vest de o țară faimoasă pentru ghețari", "La nord de o țară renumită pentru tundre", "La est de Oceanul Pacific"], answer: "Groenlanda" },
+    { hints: ["La nord de Oceanul Atlantic", "La sud de Oceanul Arctic", "La est de o țară renumită pentru tundre"], answer: "Norvegia" },
+    { hints: ["La est de o țară faimoasă pentru ghețari", "La nord de o țară renumită pentru croissante", "La vest de Oceanul Atlantic"], answer: "Germania" },
+    { hints: ["La sud de o țară faimoasă pentru vals", "La vest de o țară cunoscută pentru pizza", "La nord de Marea Mediterană"], answer: "Elveția" },
+    { hints: ["La vest de o țară renumită pentru ghețari", "La nord de Oceanul Atlantic", "La sud de Oceanul Arctic"], answer: "Norvegia" },
+    { hints: ["La nord de o țară faimoasă pentru ghețari", "La vest de o țară renumită pentru tundre", "La sud de Oceanul Arctic"], answer: "Islanda" },
+    { hints: ["La sud de o țară cunoscută pentru vals", "La vest de Oceanul Pacific", "La nord de Oceanul Indian"], answer: "China" },
+    { hints: ["La nord de Oceanul Atlantic", "La est de Oceanul Pacific", "La vest de Groenlanda"], answer: "Canada" },
+    { hints: ["La est de Oceanul Pacific", "La nord de o țară renumită pentru ghețari", "La sud de Oceanul Arctic"], answer: "Alaska" },
+    { hints: ["La sud de Oceanul Arctic", "La vest de o țară cunoscută pentru tundre", "La est de Groenlanda"], answer: "Rusia" },
+    { hints: ["La nord de Oceanul Atlantic", "La sud de Oceanul Arctic", "La vest de o țară renumită pentru tundre"], answer: "Norvegia" },
+    { hints: ["La sud de o țară renumită pentru tundre", "La est de Oceanul Atlantic", "La nord de Marea Mediterană"], answer: "Franța" },
+    { hints: ["La vest de o țară faimoasă pentru vals", "La nord de Oceanul Atlantic", "La sud de Oceanul Arctic"], answer: "Irlanda" },
+    { hints: ["La sud de Oceanul Arctic", "La est de Groenlanda", "La nord de o țară faimoasă pentru ghețari"], answer: "Islanda" },
+    { hints: ["La est de o țară renumită pentru tundre", "La sud de Oceanul Arctic", "La nord de Oceanul Pacific"], answer: "Suedia" },
+    { hints: ["La vest de o țară faimoasă pentru tundre", "La nord de o țară cunoscută pentru vals", "La sud de Oceanul Arctic"], answer: "Polonia" },
+    { hints: ["La sud de o țară renumită pentru tundre", "La vest de Oceanul Pacific", "La est de Oceanul Atlantic"], answer: "Rusia" },
+    { hints: ["La sud de o țară renumită pentru ghețari", "La vest de Oceanul Pacific", "La est de Groenlanda"], answer: "Canada" },
+    { hints: ["La nord de Oceanul Pacific", "La vest de Oceanul Atlantic", "La est de o țară renumită pentru tundre"], answer: "Groenlanda" },
+    { hints: ["La nord de Marea Mediterană", "La sud de Oceanul Arctic", "La vest de o țară cunoscută pentru vals"], answer: "Germania" },
+    { hints: ["La est de o țară renumită pentru ghețari", "La vest de Oceanul Atlantic", "La nord de Oceanul Arctic"], answer: "Norvegia" },
+    { hints: ["La sud de Oceanul Arctic", "La nord de Oceanul Atlantic", "La est de Groenlanda"], answer: "Islanda" },
+    { hints: ["La nord de Oceanul Indian", "La vest de o țară faimoasă pentru mâncarea picantă", "La est de o țară cunoscută pentru vals"], answer: "China" },
+    { hints: ["La vest de Oceanul Atlantic", "La nord de o țară renumită pentru ghețari", "La sud de Oceanul Arctic"], answer: "Groenlanda" },
+    { hints: ["La sud de Oceanul Arctic", "La nord de o țară cunoscută pentru tundre", "La est de Groenlanda"], answer: "Norvegia" },
+    { hints: ["La vest de o țară cunoscută pentru tundre", "La nord de Marea Mediterană", "La est de Oceanul Atlantic"], answer: "Franța" },
+    { hints: ["La sud de Oceanul Arctic", "La est de Oceanul Atlantic", "La nord de o țară faimoasă pentru vals"], answer: "Suedia" },
+    { hints: ["La sud de o țară renumită pentru ghețari", "La vest de Oceanul Pacific", "La est de Groenlanda"], answer: "Canada" },
+    { hints: ["La nord de Oceanul Atlantic", "La sud de Oceanul Arctic", "La vest de o țară faimoasă pentru tundre"], answer: "Islanda" },
+    { hints: ["La sud de o țară renumită pentru tundre", "La nord de o țară faimoasă pentru ghețari", "La est de Groenlanda"], answer: "Norvegia" },
+    { hints: ["La vest de Oceanul Atlantic", "La sud de o țară cunoscută pentru tundre", "La nord de Oceanul Pacific"], answer: "Groenlanda" },
+    { hints: ["La sud de o țară renumită pentru ghețari", "La nord de Oceanul Atlantic", "La vest de Oceanul Pacific"], answer: "Norvegia" },
+    { hints: ["La nord de Oceanul Atlantic", "La est de Groenlanda", "La sud de Oceanul Arctic"], answer: "Islanda" },
+    { hints: ["La est de Oceanul Pacific", "La vest de o țară renumită pentru tundre", "La nord de o țară faimoasă pentru ghețari"], answer: "Canada" },
+    { hints: ["La vest de o țară faimoasă pentru tundre", "La nord de Oceanul Atlantic", "La sud de Oceanul Arctic"], answer: "Norvegia" },
+    { hints: ["La nord de Oceanul Pacific", "La sud de Oceanul Arctic", "La vest de o țară faimoasă pentru ghețari"], answer: "Groenlanda" },
+    { hints: ["La sud de o țară cunoscută pentru tundre", "La nord de Oceanul Atlantic", "La est de Groenlanda"], answer: "Islanda" },
+    { hints: ["La sud de Oceanul Arctic", "La est de Groenlanda", "La nord de o țară faimoasă pentru tundre"], answer: "Norvegia" },
+    { hints: ["La vest de Oceanul Atlantic", "La nord de Oceanul Pacific", "La sud de o țară renumită pentru ghețari"], answer: "Groenlanda" },
+    { hints: ["La nord de o țară renumită pentru tundre", "La sud de Oceanul Arctic", "La vest de Groenlanda"], answer: "Norvegia" },
+    { hints: ["La est de Oceanul Pacific", "La vest de Groenlanda", "La nord de o țară renumită pentru tundre"], answer: "Canada" },
+    { hints: ["La sud de o țară cunoscută pentru tundre", "La vest de o țară faimoasă pentru ghețari", "La nord de Oceanul Atlantic"], answer: "Franța" }
+    ];
+
+    let selectedQuestion = null;
+    let immunityPoints = 0;
+
+    function initializeQuestion() {
+        selectedQuestion = questions[Math.floor(Math.random() * questions.length)];
+        document.getElementById("hint1").innerText = selectedQuestion.hints[0];
+        document.getElementById("hint2").innerText = selectedQuestion.hints[1];
+        document.getElementById("hint3").innerText = selectedQuestion.hints[2];
+        document.getElementById("hints-section").classList.remove("hidden");
+        document.getElementById("response-message").innerText = '';
+        document.getElementById("answer").value = '';
+    }
+
+    function checkAnswer() {
+        const answer = document.getElementById("answer").value.trim();
+        if (answer.toLowerCase() === selectedQuestion.answer.toLowerCase()) {
+            document.getElementById("response-message").innerHTML = `Răspuns corect ✅ Codul punctului de imunitate este: <strong>${selectedQuestion.code}</strong>`;
+        } else {
+            document.getElementById("response-message").innerHTML = "<span class='try-again'>Mai încearcă</span>";
+        }
+    }
+
+    function addImmunity() {
+        const enteredCode = document.getElementById("immunity-code").value.trim();
+        if (enteredCode === selectedQuestion.code) {
+            immunityPoints++;
+            document.getElementById("immunity-points").innerText = immunityPoints;
+            document.getElementById("immunity-message").innerText = "Punct de imunitate adăugat!";
+            document.getElementById("immunity-code").value = '';
+        } else {
+            document.getElementById("immunity-message").innerText = "Cod invalid. Încearcă din nou.";
+        }
+    }
+</script>
+
+</body>
+</html>
